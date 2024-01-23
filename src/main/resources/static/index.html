@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="zh_tw">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>index</title>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width"/>
+<!-- <base href="/"/> -->
+<link rel="stylesheet" type="text/css" href="/SpringOAuth2Test/webjars/bootstrap/css/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/SpringOAuth2Test/webjars/jquery-ui-themes/smoothness/jquery-ui.css"/>
+<style type="text/css">
+.no-close .ui-dialog-titlebar-close{
+  display:none;
+}
+</style>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/jquery-ui/jquery-ui.js"></script>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/js-cookie/js.cookie.js"></script>
+<script type="text/javascript" src="https://accounts.google.com/gsi/client"></script>
+<script type="text/javascript" src="https://connect.facebook.net/zh_TW/sdk.js#xfbml=1&version=v17.0&appId=720942679801760&autoLogAppEvents=1"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$.ajaxSetup({
+		beforeSend:function(xhr,settings){
+			if(settings.type == 'POST' || settings.type == 'PUT'
+			|| settings.type == 'DELETE'){
+				if(!(/^http:.*/.test(settings.url) || /^https:.*/
+				.test(settings.url))){
+					xhr.setRequestHeader("X-XSRF-TOKEN",Cookies.get('XSRF-TOKEN'));
+				}
+			}
+		}
+	});
+	    	
+	$.ajax({
+		url:"/SpringOAuth2Test/oauth2Login",
+		method:"POST",
+		success:function(data){
+			//console.log("success");
+			//console.log(data);
+			
+			//$("#loginType").html(data.loginType);
+			//$("#loginName").html(data.name);
+			
+			//$(".unauthenticated").hide();
+			//$(".authenticated").show();
+			
+			if(data.needVerifyEmail){
+				//前往email認證
+				$("#form").attr("action","/SpringOAuth2Test/goEmailVerify");
+			}
+			else{
+				//前往功能頁面
+				$("#form").attr("action","/SpringOAuth2Test/goMain");
+			}
+			
+			$("#form").submit();
+		},
+		error:function(data){
+			//console.log("error");
+			//console.log(data);
+		}
+	});
+
+	$("#registerAccountDialog").dialog({
+		autoOpen:false,
+		dialogClass:"no-close",
+		modal:true,
+		title:"註冊一般帳號",
+		buttons:[
+			{
+				text:"取消",
+				click:function(){
+					$(this).dialog("close");
+				}
+			},
+			{
+				text:"確定",
+				click:function(){
+					//將頭尾空白去掉
+					var account = $.trim($("#account").val());
+					var pazzword = $.trim($("#pazzword").val());
+					var pazzwordAgain = $.trim($("#pazzwordAgain").val());
+					
+					$("#account").val(account);
+					$("#pazzword").val(pazzword);
+					$("#pazzwordAgain").val(pazzwordAgain);
+					
+					//檢查欄位是否有輸入
+					if(account == ""){
+						alert("請輸入帳號");
+						return;
+					}
+					else if(pazzword == ""){
+						alert("請輸入密碼");
+						return;
+					}
+					else if(pazzwordAgain == ""){
+						alert("請輸入確認密碼");
+						return;
+					}
+					else if(pazzword != pazzwordAgain){
+						alert("密碼與確認密碼不一致");
+						return;
+					}
+					
+					//檢查帳號是否有重覆
+					$.ajax({
+						url:"/SpringOAuth2Test/checkAccount",
+						method:"POST",
+						data:{
+							account:account
+						},
+						success:function(data){
+							//console.log("success");
+							//console.log(data);
+							
+							if(!data.result){
+								alert(data.message);
+								
+								return;
+							}
+							
+							//註冊帳號
+							$.ajax({
+								url:"/SpringOAuth2Test/registerAccount",
+								method:"POST",
+								data:{
+									account:account,
+									pazzword:pazzword
+								},
+								success:function(data2){
+									//console.log("success");
+									//console.log(data2);
+									
+									if(data2.registerResult){
+										//前往email認證
+										$("#form").attr("action","/SpringOAuth2Test/goEmailVerify");
+									}
+									
+									$("#form").submit();
+								},
+								error:function(data2){
+									//console.log("error");
+									//console.log(data2);
+								}
+							});
+						},
+						error:function(data){
+							//console.log("error");
+							//console.log(data);
+						}
+					});
+				}
+			}
+		]
+	});
+	
+	$("#normalLoginDialog").dialog({
+		autoOpen:false,
+		dialogClass:"no-close",
+		modal:true,
+		title:"一般帳號登入",
+		buttons:[
+			{
+				text:"取消",
+				click:function(){
+					$(this).dialog("close");
+				}
+			},
+			{
+				text:"確定",
+				click:function(){
+					//將頭尾空白去掉
+					var loginAccount = $.trim($("#loginAccount").val());
+					var loginPazzword = $.trim($("#loginPazzword").val());
+					
+					$("#loginAccount").val(loginAccount);
+					$("#loginPazzword").val(loginPazzword);
+					
+					//檢查欄位是否有輸入
+					if(loginAccount == ""){
+						alert("請輸入帳號");
+						return;
+					}
+					else if(loginPazzword == ""){
+						alert("請輸入密碼");
+						return;
+					}
+					
+					//登入
+					$.ajax({
+						url:"/SpringOAuth2Test/normalLogin",
+						method:"POST",
+						data:{
+							account:loginAccount,
+							pazzword:loginPazzword
+						},
+						success:function(data){
+							//console.log("success");
+							//console.log(data);
+							
+							if(!data.result){
+								alert(data.message);
+								
+								return;
+							}
+							
+							if(data.needVerifyEmail){
+								//前往email認證
+								$("#form").attr("action","/SpringOAuth2Test/goEmailVerify");
+							}
+							else{
+								//前往功能頁面
+								$("#form").attr("action","/SpringOAuth2Test/goMain");
+							}
+							
+							$("#form").submit();
+						},
+						error:function(data){
+							//console.log("error");
+							//console.log(data);
+						}
+					});
+				}
+			}
+		]
+	});
+});
+
+function registerAccount(){
+	$("#registerAccountDialog").dialog("open");
+	$("#account").val("");
+	$("#pazzword").val("");
+	$("#pazzwordAgain").val("");
+	$("#account").focus();
+}
+
+function normalLogin(){
+	$("#normalLoginDialog").dialog("open");
+	$("#loginAccount").val("");
+	$("#loginPazzword").val("");
+	$("#loginAccount").focus();
+}
+
+function gitHubLogin(){
+	$("#form").attr("action","/SpringOAuth2Test/oauth2/authorization/github");
+	$("#form").submit();
+}
+  	
+// function googleLogin(){
+// 	$("#form").attr("action","/SpringOAuth2Test/oauth2/authorization/google");
+// 	$("#form").submit();
+// }
+
+function googleLogin(googleUser){
+// 	console.log(googleUser);
+// 	console.log(googleUser.credential);
+	
+	$.ajax({
+		url:"/SpringOAuth2Test/loginForGoogle",
+		method:"POST",
+		data:{
+			credential:googleUser.credential
+		},
+		success:function(data){
+			//console.log("success");
+			//console.log(data);
+			
+			if(!data.result){
+				alert(data.message);
+				
+				return;
+			}
+			
+			if(data.needVerifyEmail){
+				//前往email認證
+				$("#form").attr("action","/SpringOAuth2Test/goEmailVerify");
+			}
+			else{
+				//前往功能頁面
+				$("#form").attr("action","/SpringOAuth2Test/goMain");
+			}
+			
+			$("#form").submit();
+		},
+		error:function(data){
+			//console.log("error");
+			//console.log(data);
+		}
+	});
+}
+
+function lineLogin(){
+	$("#form").attr("action","/SpringOAuth2Test/oauth2/authorization/line");
+	$("#form").submit();
+}
+
+function faceBookLogin(){
+	//$("#form").attr("action","/SpringOAuth2Test/oauth2/authorization/facebook");
+	//$("#form").submit();
+	
+	FB.login(function(response){
+		//console.log(response);
+		
+		//登入成功的狀態
+		if(response.status == 'connected'){
+			//登入成功後先登出，之後回到此頁面，就是未登入的狀態
+			FB.logout(function(response){});
+			
+			$.ajax({
+				url:"/SpringOAuth2Test/loginForFB",
+				method:"POST",
+				data:{
+					userID:response.authResponse.userID
+				},
+				success:function(data){
+					//console.log("success");
+					//console.log(data);
+					
+					if(data.needVerifyEmail){
+						//前往email認證
+						$("#form").attr("action","/SpringOAuth2Test/goEmailVerify");
+					}
+					else{
+						//前往功能頁面
+						$("#form").attr("action","/SpringOAuth2Test/goMain");
+					}
+					
+					$("#form").submit();
+				},
+				error:function(data){
+					//console.log("error");
+					//console.log(data);
+				}
+			});
+		}
+	});
+}
+
+// function logout(){
+// 	$.ajax({
+// 		url:"/SpringOAuth2Test/logout",
+// 		method:"POST",
+// 		success:function(data){
+// 			console.log("success");
+// 			console.log(data);
+			
+// 			$("#loginName").html("");
+			
+// 			$(".unauthenticated").show();
+// 			$(".authenticated").hide();
+// 		},
+// 		error:function(data){
+// 			console.log("logout error");
+// 			console.log(data);
+// 		}
+// 	});
+// }
+</script>
+</head>
+<body>
+	<h1>index</h1>
+	<form id="form">
+		<div class="container unauthenticated">
+			<div>
+				<input type="button" onclick="registerAccount();" class="btn btn-primary" value="註冊一般帳號"/>
+				&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;
+				<input type="button" onclick="normalLogin();" class="btn btn-primary" value="一般帳號登入"/>
+			</div>
+			<hr/>
+			<div>
+				GitHub登入：
+<!-- 				<a href="/SpringOAuth2Test/oauth2/authorization/github">click here</a> -->
+<!-- 				<button onClick="gitHubLogin()" class="btn btn-primary">點我</button> -->
+				<input type="button" onclick="gitHubLogin();" class="btn btn-primary" value="點我"/>
+			</div>
+			<br/>
+			<div>
+				Google登入：
+				<!-- <a href="/SpringOAuth2Test/oauth2/authorization/google">click here</a> -->
+<!-- 				<input type="button" onclick="googleLogin();" class="btn btn-primary" value="點我"/> -->
+				<div id="g_id_onload" data-client_id="629648582155-sgmdnobqquum1q887osrcrgponeale9g.apps.googleusercontent.com" data-callback="googleLogin"></div>
+				<div class="g_id_signin" data-type="standard"></div>
+			</div>
+			<br/>
+			<div>
+				Line登入：
+				<input type="button" onclick="lineLogin();" class="btn btn-primary" value="點我"/>
+			</div>
+			<br/>
+			<div>
+				FaceBook登入：
+				<input type="button" onclick="faceBookLogin();" class="btn btn-primary" value="點我"/>
+			</div>
+		</div>
+<!-- 		<div class="container authenticated" style="display:none"> -->
+<!-- 			登入方式：<span id="loginType"></span> -->
+<!-- 			<br/> -->
+<!-- 			登入名稱：<span id="loginName"></span> -->
+<!-- 			<div> -->
+<!-- 				<input type="button" onclick="logout();" class="btn btn-primary" value="登出"/> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+	</form>
+	<div id="registerAccountDialog">
+		<span>帳號：</span><input type="text" id="account"/>
+		<br/><br/>
+		<span>密碼：</span><input type="password" id="pazzword"/>
+		<br/><br/>
+		<span>確認密碼：</span><input type="password" id="pazzwordAgain"/>
+	</div>
+	<div id="normalLoginDialog">
+		<span>帳號：</span><input type="text" id="loginAccount"/>
+		<br/><br/>
+		<span>密碼：</span><input type="password" id="loginPazzword"/>
+	</div>
+</body>
+</html>

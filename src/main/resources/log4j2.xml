@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+	<Properties>
+		<Property name="basePath">/Logs/SpringOAuth2Test</Property>
+		<property name="fileName">log</property>
+		<property name="logPattern">%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level][%t][%logger{36}:%L]-%m%n</property>
+	</Properties>
+	<Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${logPattern}"/>
+        </Console>
+		<RollingFile name="fileLogger" fileName="${basePath}/${fileName}.log" 
+		filePattern="${basePath}/${fileName}-%d{yyyy-MM-dd}.log">
+			<PatternLayout pattern="${logPattern}"/>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="10MB"/>
+			</Policies>
+		</RollingFile>
+	</Appenders>
+	<Loggers>
+		<Root level="debug" additivity="false">
+			<appender-ref ref="fileLogger"/>
+			<appender-ref ref="console"/>
+		</Root>
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="fileLogger"/>
+			<appender-ref ref="console" />
+        </Logger>
+        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
+            <AppenderRef ref="fileLogger"/>
+			<appender-ref ref="console" />
+        </Logger>
+	</Loggers>
+</Configuration>

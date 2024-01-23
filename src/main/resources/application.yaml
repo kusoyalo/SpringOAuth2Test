@@ -1,0 +1,70 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            clientId: 08c947436d444bbe7e52
+            clientSecret: cca0d90d346dc3f1238e5ae7105078b4e55a4e8f
+          google:
+            clientId: 629648582155-sgmdnobqquum1q887osrcrgponeale9g.apps.googleusercontent.com
+            clientSecret: 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
+          line:
+            clientId: 1661401869
+            clientSecret: 7ee158a798b4c888c3300890dd81a62f
+            authorizationGrantType: authorization_code
+            #local
+            redirectUri: http://localhost:8080/SpringOAuth2Test/login/oauth2/code/line
+            #公司測試機vm
+            #內部ip是localhost:8080，對外ip是211.75.133.17:7863
+            #redirectUri: http://211.75.133.17:7863/SpringOAuth2Test/login/oauth2/code/line
+            #公司測試機docker
+            #redirectUri: http://211.75.133.17:8889/SpringOAuth2Test/login/oauth2/code/line
+            scope: profile
+          facebook:
+            clientId: 720942679801760
+            clientSecret: feeb88af108e5fc89784a2aeb8acd219
+        provider:
+          line:
+            authorizationUri: https://access.line.me/oauth2/v2.1/authorize
+            tokenUri: https://api.line.me/oauth2/v2.1/token
+            userInfoUri: https://api.line.me/v2/profile
+            userNameAttribute: userId
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=SpringOAuth2Test;encrypt=false
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username: sa
+    password: '1qaz2wsxSheng-Sen#EDC$RFV'
+  jpa:
+    showSql: true
+    databasePlatform: org.hibernate.dialect.SQLServer2012Dialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    protocol: smtp
+    username: kusoyalo@gmail.com
+    password: Kuso1981
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+logging:
+  config: classpath:log4j2.xml
+
+server:
+  port: 8080
+  ssl:
+    enabled: false
+    #key-store: classpath:keystore.jks
+    key-store: classpath:keystore.pkcs12
+    key-store-password: 701014
+    #key-store-type: JKS
+    key-store-type: PKCS12
+  servlet:
+    context-path: /SpringOAuth2Test
+#設定參數
+#內網IP
+internalIP: 5566
+            
+            

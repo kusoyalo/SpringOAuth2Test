@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh_tw">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>roleSetting</title>
+<meta name="description" content=""/>
+<meta name="viewport" content="width=device-width"/>
+<!-- <base href="/"/> -->
+<link rel="stylesheet" type="text/css" href="/SpringOAuth2Test/webjars/bootstrap/css/bootstrap.min.css"/>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/SpringOAuth2Test/webjars/js-cookie/js.cookie.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$.ajaxSetup({
+		beforeSend:function(xhr,settings){
+			if(settings.type == 'POST' || settings.type == 'PUT'
+			|| settings.type == 'DELETE'){
+				if(!(/^http:.*/.test(settings.url) || /^https:.*/
+				.test(settings.url))){
+					xhr.setRequestHeader("X-XSRF-TOKEN",Cookies.get('XSRF-TOKEN'));
+				}
+			}
+		}
+	});
+	
+	$.ajax({
+		url:"/SpringOAuth2Test/getRoleData",
+		method:"POST",
+		success:function(data){
+			//console.log("success");
+			//console.log(data);
+			
+			var roleDataHTML = "";
+			
+			for(var x=0;x<data.length;x++){
+				var pk = data[x].loginType + "_" + data[x].userID;
+				//console.log(pk);
+				
+				roleDataHTML += data[x].loginType + '<br/>' + data[x].userID  + '<br/>';
+				
+				var roleList = JSON.parse(data[x].role);
+				
+				var isChecked = "";
+				
+				if(roleList.includes("A")){
+					isChecked = "checked";
+	 			}
+				else{
+					isChecked = "";
+				}
+				roleDataHTML += '<div>';
+				roleDataHTML += '<input type="checkbox" id="' + pk + '_A"' + isChecked + '/>一般會員（一般國民）&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;';
+				
+				if(roleList.includes("B")){
+					isChecked = "checked";
+	 			}
+				else{
+					isChecked = "";
+				}
+				roleDataHTML += '<input type="checkbox" id="' + pk + '_B"' + isChecked + '/>一般會員（內政部官員）&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;';
+				
+				if(roleList.includes("C")){
+					isChecked = "checked";
+	 			}
+				else{
+					isChecked = "";
+				}
+				roleDataHTML += '<input type="checkbox" id="' + pk + '_C"' + isChecked + '/>知識庫管理員&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;';
+				
+				if(roleList.includes("D")){
+					isChecked = "checked";
+	 			}
+				else{
+					isChecked = "";
+				}
+				roleDataHTML += '<input type="checkbox" id="' + pk + '_D"' + isChecked + '/>會員權限管理員&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;';
+				roleDataHTML += '</div>';
+				roleDataHTML += '<hr/>';
+			}
+			
+			$("#roleDataDiv").html(roleDataHTML);
+		},
+		error:function(data){
+			//console.log("error");
+			//console.log(data);
+		}
+	});
+});
+
+function saveRoleData(){
+	var list = [];
+	
+	$("#roleDataDiv div").each(function(){
+		var map = {};
+		var roleList = [];
+		
+		$(this).find("input[type=checkbox]").each(function(index){
+			var isChecked = $(this).prop("checked");
+			
+			if(index == 0 && isChecked){
+				roleList.push("A");
+			}
+			else if(index == 1 && isChecked){
+				roleList.push("B");
+			}
+			else if(index == 2 && isChecked){
+				roleList.push("C");
+			}
+			else if(index == 3 && isChecked){
+				roleList.push("D");
+			}
+			
+			if(index == 3){
+				map.role = roleList;
+				
+				var id = $(this).attr("id");
+				var loginType = id.split("_")[0];
+				var userID = id.split("_")[1];
+				
+				map.loginType = loginType;
+				map.userID = userID;
+				
+				list.push(map);
+			}
+		});
+	});
+	
+	//console.log(list);
+	//console.log(JSON.stringify(list));
+	
+	$.ajax({
+		url:"/SpringOAuth2Test/saveRoleData",
+		method:"POST",
+		data:JSON.stringify(list),
+		contentType:"application/json;charset=utf-8",
+		success:function(data){
+			//console.log("success");
+			//console.log(data);
+			
+			alert(data.message);
+		},
+		error:function(data){
+			//console.log("error");
+			//console.log(data);
+		}
+	});
+}
+function goMain(){
+	//前往功能頁面
+	$("#form").attr("action","/SpringOAuth2Test/goMain");
+	$("#form").submit();
+}
+function logout(){
+	$.ajax({
+		url:"/SpringOAuth2Test/logout",
+		method:"POST",
+		success:function(data){
+			//console.log("success");
+			//console.log(data);
+			
+			$("#form").attr("action","/SpringOAuth2Test/welcome");
+			$("#form").submit();
+		},
+		error:function(data){
+			//console.log("error");
+			//console.log(data);
+		}
+	});
+}
+</script>
+</head>
+</head>
+<body>
+	<h1>roleSetting</h1>
+	<form id="form">
+		<div style="text-align:right">
+			<input type="button" onclick="goMain();" class="btn btn-primary" value="回功能頁"/>
+			&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;
+			<input type="button" onclick="logout();" class="btn btn-primary" value="登出"/>
+		</div>
+		<br/><br/>
+		<input type="button" onclick="saveRoleData();" class="btn btn-primary" value="儲存"/>
+		<br/><br/>
+		<div id="roleDataDiv">
+		</div>
+	</form>
+</body>
+</html>

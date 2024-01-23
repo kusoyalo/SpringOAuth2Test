@@ -1,0 +1,3 @@
+FROM quay.io/wildfly/wildfly
+
+ADD lib/build/libs/lib.war /wildfly/standalone/deployments/
